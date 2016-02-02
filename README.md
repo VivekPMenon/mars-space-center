@@ -1,9 +1,9 @@
 # mars-space-center
 this is a demo project created for Industrial Color
 
-Idea is to have Mars-space-center class which will receive communications from earth (in this case a textbox)
+Idea is to have Mars-space-center class instance which will receive communications from earth (in this case a textbox)
 
-mars-space-center will validate the recieved signal and creates a Robot-house class which is responsible for deploying and tracking robots.
+mars-space-center will validate the recieved signal and creates a Robot-house class instance which is responsible for deploying and tracking robots.
 
 Robot house will keep track of all the robots that were created even if the Robot status is lost. Robot house will have a list of coordinates where it's robots were found just before them getting lost.
 
