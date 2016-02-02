@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="../jspm_packages/system.js"></script>
+    <script src="../config.js"></script>
+    <script>
+        var globalMSC;
+        System.import('./src/app').then(function(exports){
+            globalMSC = new exports.MarsSpaceCenter();
+        });
+        //System.import('./src/app');
+    </script>
+    <script>
+        function sendCommand(){
+            globalMSC.executeCommand(document.getElementById('txtCmd').value);
+        }
+    </script>
+</head>
+    <body>
+        <input type="text" id="txtCmd">
+
+        <input type="button" value="Send Command" onclick="sendCommand()">
+        <div id="dvOutput">
+
+        </div>
+    </body>
+</html>
