@@ -1,5 +1,5 @@
 # mars-space-center
-this is a demo project created for Industrial Color
+this is a demo project created for some experimentation
 
 Idea is to have Mars-space-center class instance which will receive communications from earth (in this case a textbox)
 
