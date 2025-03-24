@@ -1,3 +1,45 @@
-node_modules
-jspm_packages
-.idea
+import { useSyncExternalStore } from 'react';
+
+type Listener<T> = (state: T) => void;
+
+type SetState<T> = (partial: Partial<T> | ((state: T) => Partial<T>)) => void;
+
+type StoreApi<T> = {
+  getState: () => T;
+  setState: SetState<T>;
+  subscribe: (listener: Listener<T>) => () => void;
+  useStore: <U>(selector: (state: T) => U) => U;
+};
+
+export function create<T extends Record<string, any>>(
+  createState: (set: SetState<T>, get: () => T) => T
+): StoreApi<T> {
+  let state: T;
+  const listeners = new Set<Listener<T>>();
+
+  const getState = () => state;
+
+  const setState: SetState<T> = (partial) => {
+    const next = typeof partial === 'function' ? partial(state) : partial;
+    state = { ...state, ...next };
+    listeners.forEach((listener) => listener(state));
+  };
+
+  state = createState(setState, getState);
+
+  const subscribe = (listener: Listener<T>) => {
+    listeners.add(listener);
+    return () => listeners.delete(listener);
+  };
+
+  const useStore = <U>(selector: (state: T) => U): U => {
+    return useSyncExternalStore(subscribe, () => selector(state));
+  };
+
+  return {
+    getState,
+    setState,
+    subscribe,
+    useStore,
+  };
+}
