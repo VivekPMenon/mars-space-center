@@ -9,32 +9,37 @@ function UploadCellRenderer(props: ICellRendererParams): JSX.Element {
   }
 
   function handleFileChange(event: React.ChangeEvent<HTMLInputElement>): void {
-    const file = event.target.files?.[0];
-    if (!file) return;
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
 
-    const reader = new FileReader();
-    reader.onload = function () {
-      const result = reader.result;
-      if (result instanceof ArrayBuffer) {
-        const blob = new Blob([result], { type: file.type });
-        uploadToApi(file.name, blob);
-      }
-    };
-    reader.readAsArrayBuffer(file);
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const reader = new FileReader();
+
+      reader.onload = function () {
+        const result = reader.result;
+        if (result instanceof ArrayBuffer) {
+          const blob = new Blob([result], { type: file.type });
+          uploadToApi(file.name, blob);
+        }
+      };
+
+      reader.readAsArrayBuffer(file);
+    }
   }
 
   function uploadToApi(fileName: string, blob: Blob): void {
     const payload = {
       fileName,
-      blob,
+      blob
     };
 
     fetch('https://your-api-url.com/upload', {
       method: 'POST',
       body: JSON.stringify(payload),
       headers: {
-        'Content-Type': 'application/json',
-      },
+        'Content-Type': 'application/json'
+      }
     })
       .then(function (res) { return res.json(); })
       .then(function (data) {
@@ -55,6 +60,7 @@ function UploadCellRenderer(props: ICellRendererParams): JSX.Element {
         ref={fileInputRef}
         style={{ display: 'none' }}
         onChange={handleFileChange}
+        multiple
       />
     </div>
   );
