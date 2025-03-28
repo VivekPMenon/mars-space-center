@@ -18,21 +18,34 @@ function UploadCellRenderer(props: ICellRendererParams): JSX.Element {
   }
 
   function uploadToApi(file: File): void {
-    const formData = new FormData();
-    formData.append('fileName', file.name);
-    formData.append('blob', file);
+    const reader = new FileReader();
 
-    fetch('https://your-api-url.com/upload', {
-      method: 'POST',
-      body: formData
-    })
-      .then(function (res) { return res.json(); })
-      .then(function (data) {
-        console.log('Upload successful:', data);
+    reader.onload = function () {
+      const base64Data = reader.result as string;
+
+      const payload = {
+        fileName: file.name,
+        blob: base64Data
+      };
+
+      fetch('https://your-api-url.com/upload', {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer YOUR_TOKEN_HERE',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
       })
-      .catch(function (error) {
-        console.error('Upload failed:', error);
-      });
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          console.log('Upload successful:', data);
+        })
+        .catch(function (error) {
+          console.error('Upload failed:', error);
+        });
+    };
+
+    reader.readAsDataURL(file); // base64 encode
   }
 
   return (
