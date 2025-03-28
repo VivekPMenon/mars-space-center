@@ -10,10 +10,39 @@ function UploadCellRenderer(props: ICellRendererParams): JSX.Element {
 
   function handleFileChange(event: React.ChangeEvent<HTMLInputElement>): void {
     const file = event.target.files?.[0];
-    if (file) {
-      console.log('Selected file:', file);
-      // Example: props.node.setDataValue('upload', file.name);
-    }
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function () {
+      const result = reader.result;
+      if (result instanceof ArrayBuffer) {
+        const blob = new Blob([result], { type: file.type });
+        uploadToApi(file.name, blob);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  function uploadToApi(fileName: string, blob: Blob): void {
+    const payload = {
+      fileName,
+      blob,
+    };
+
+    fetch('https://your-api-url.com/upload', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        console.log('Upload successful:', data);
+      })
+      .catch(function (error) {
+        console.error('Upload failed:', error);
+      });
   }
 
   return (
