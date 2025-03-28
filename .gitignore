@@ -1,67 +1,36 @@
-import React, { useRef } from 'react';
-import { ICellRendererParams } from 'ag-grid-community';
+[ApiController]
+[Route("api/[controller]")]
+public class UploadController : ControllerBase
+{
+  [HttpPost]
+  [Route("upload")]
+  public async Task<IActionResult> Upload([FromBody] FileUploadModel model)
+  {
+    if (string.IsNullOrWhiteSpace(model.Blob) || string.IsNullOrWhiteSpace(model.FileName))
+      return BadRequest("Missing file name or content.");
 
-function UploadCellRenderer(props: ICellRendererParams): JSX.Element {
-  const fileInputRef = useRef<HTMLInputElement>(null);
+    try
+    {
+      byte[] fileBytes = Convert.FromBase64String(model.Blob);
 
-  function handleLinkClick(): void {
-    fileInputRef.current?.click();
-  }
+      var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+      if (!Directory.Exists(uploadsPath))
+      {
+        Directory.CreateDirectory(uploadsPath);
+      }
 
-  function handleFileChange(event: React.ChangeEvent<HTMLInputElement>): void {
-    const files = event.target.files;
-    if (!files || files.length === 0) return;
+      var filePath = Path.Combine(uploadsPath, model.FileName);
+      await System.IO.File.WriteAllBytesAsync(filePath, fileBytes);
 
-    for (let i = 0; i < files.length; i++) {
-      uploadToApi(files[i]);
+      return Ok(new { message = "File uploaded successfully", path = filePath });
+    }
+    catch (FormatException)
+    {
+      return BadRequest("Invalid base64 string.");
+    }
+    catch (Exception ex)
+    {
+      return StatusCode(500, $"Internal server error: {ex.Message}");
     }
   }
-
-  function uploadToApi(file: File): void {
-    const reader = new FileReader();
-
-    reader.onload = function () {
-      const base64Data = reader.result as string;
-
-      const payload = {
-        fileName: file.name,
-        blob: base64Data
-      };
-
-      fetch('https://your-api-url.com/upload', {
-        method: 'POST',
-        headers: {
-          'Authorization': 'Bearer YOUR_TOKEN_HERE',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      })
-        .then(function (res) { return res.json(); })
-        .then(function (data) {
-          console.log('Upload successful:', data);
-        })
-        .catch(function (error) {
-          console.error('Upload failed:', error);
-        });
-    };
-
-    reader.readAsDataURL(file); // base64 encode
-  }
-
-  return (
-    <div>
-      <a href='#' onClick={function (e) { e.preventDefault(); handleLinkClick(); }}>
-        Upload Document
-      </a>
-      <input
-        type='file'
-        ref={fileInputRef}
-        style={{ display: 'none' }}
-        onChange={handleFileChange}
-        multiple
-      />
-    </div>
-  );
 }
-
-export default UploadCellRenderer;
