@@ -1,28 +1,25 @@
-function handleDownloadClick(): void {
-    if (!fileName) return;
+function downloadFile(base64Content: string, fileName: string): void {
+  try {
+    // Convert base64 to binary data
+    const byteCharacters = atob(base64Content);
+    const byteNumbers = new Array(byteCharacters.length);
 
-    fetch(`https://your-api-url.com/download?fileName=${encodeURIComponent(fileName)}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': 'Bearer YOUR_TOKEN_HERE'
-      }
-    })
-      .then(function (res) { return res.json(); })
-      .then(function (data) {
-        if (data.blob) {
-          downloadFile(data.blob, fileName);
-        } else {
-          console.error('Download failed:', data.message);
-        }
-      })
-      .catch(function (error) {
-        console.error('Download failed:', error);
-      });
-  }
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
 
-  function downloadFile(base64Content: string, fileName: string): void {
+    const byteArray = new Uint8Array(byteNumbers);
+    const blob = new Blob([byteArray], { type: 'application/octet-stream' });
+
+    // Create a temporary blob URL
     const link = document.createElement('a');
-    link.href = `data:application/octet-stream;base64,${base64Content}`;
+    link.href = URL.createObjectURL(blob);
     link.download = fileName;
     link.click();
+
+    // Clean up the URL object
+    URL.revokeObjectURL(link.href);
+  } catch (error) {
+    console.error('Error during download:', error);
   }
+}
