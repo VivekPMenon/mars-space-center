@@ -1,36 +1,28 @@
-[ApiController]
-[Route("api/[controller]")]
-public class UploadController : ControllerBase
-{
-  [HttpPost]
-  [Route("upload")]
-  public async Task<IActionResult> Upload([FromBody] FileUploadModel model)
-  {
-    if (string.IsNullOrWhiteSpace(model.Blob) || string.IsNullOrWhiteSpace(model.FileName))
-      return BadRequest("Missing file name or content.");
+function handleDownloadClick(): void {
+    if (!fileName) return;
 
-    try
-    {
-      byte[] fileBytes = Convert.FromBase64String(model.Blob);
-
-      var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
-      if (!Directory.Exists(uploadsPath))
-      {
-        Directory.CreateDirectory(uploadsPath);
+    fetch(`https://your-api-url.com/download?fileName=${encodeURIComponent(fileName)}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': 'Bearer YOUR_TOKEN_HERE'
       }
-
-      var filePath = Path.Combine(uploadsPath, model.FileName);
-      await System.IO.File.WriteAllBytesAsync(filePath, fileBytes);
-
-      return Ok(new { message = "File uploaded successfully", path = filePath });
-    }
-    catch (FormatException)
-    {
-      return BadRequest("Invalid base64 string.");
-    }
-    catch (Exception ex)
-    {
-      return StatusCode(500, $"Internal server error: {ex.Message}");
-    }
+    })
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (data.blob) {
+          downloadFile(data.blob, fileName);
+        } else {
+          console.error('Download failed:', data.message);
+        }
+      })
+      .catch(function (error) {
+        console.error('Download failed:', error);
+      });
   }
-}
+
+  function downloadFile(base64Content: string, fileName: string): void {
+    const link = document.createElement('a');
+    link.href = `data:application/octet-stream;base64,${base64Content}`;
+    link.download = fileName;
+    link.click();
+  }
