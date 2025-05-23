@@ -1,36 +1,23 @@
-function downloadFile(base64Content: string, fileName: string): void {
-  try {
-    // Convert base64 to binary data
-    const byteCharacters = atob(base64Content);
-    const byteNumbers = new Array(byteCharacters.length);
-
-    for (let i = 0; i < byteCharacters.length; i++) {
-      byteNumbers[i] = byteCharacters.charCodeAt(i);
-    }
-
-    const byteArray = new Uint8Array(byteNumbers);
-    const blob = new Blob([byteArray], { type: 'application/octet-stream' });
-
-    // Create a temporary blob URL
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = fileName;
-    link.click();
-
-    // Clean up the URL object
-    URL.revokeObjectURL(link.href);
-  } catch (error) {
-    console.error('Error during download:', 
-
-function toPascalCaseWithSpaces(text) {
-  return text
-    .toLowerCase()
-    .split(' ')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: white;
+  transform-origin: top left;
+  transition: transform 0.4s ease, opacity 0.4s ease;
+  z-index: 1000;
 }
 
-console.log(toPascalCaseWithSpaces('HELLO WORLD EXAMPLE')); // Hello World Example
+.collapsed {
+  transform: scale(0);
+  opacity: 0;
+  pointer-events: none;
+}
 
-
-
+.expanded {
+  transform: scale(1);
+  opacity: 1;
+  pointer-events: auto;
+}
