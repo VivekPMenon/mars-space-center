@@ -1,23 +1,137 @@
-.overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: white;
-  transform-origin: top left;
-  transition: transform 0.4s ease, opacity 0.4s ease;
-  z-index: 1000;
+import { useId, useState, KeyboardEvent } from 'react';
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
+
+type ToggleProps = {
+  title: React.ReactNode;
+  children: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  defaultOpen?: boolean;
+  disabled?: boolean;
+  durationMs?: number;
+  className?: string;
+  panelClassName?: string;
+  headerClassName?: string;
+  titleClassName?: string;
+  iconClassName?: string;
+};
+
+export function Toggle({
+  title,
+  children,
+  open,
+  onOpenChange,
+  defaultOpen,
+  disabled,
+  durationMs = 260,
+  className,
+  panelClassName,
+  headerClassName,
+  titleClassName,
+  iconClassName
+}: ToggleProps) {
+  const id = useId();
+  const reduced = useReducedMotion();
+  const [uOpen, setUOpen] = useState(!!defaultOpen);
+  const isControlled = typeof open === 'boolean';
+  const isOpen = isControlled ? !!open : uOpen;
+
+  function setOpen(v: boolean) {
+    if (!isControlled) setUOpen(v);
+    if (onOpenChange) onOpenChange(v);
+  }
+
+  function onKeyDown(e: KeyboardEvent<HTMLDivElement>) {
+    if (disabled) return;
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      setOpen(!isOpen);
+    }
+  }
+
+  return (
+    <div className={className}>
+      <div
+        id={`${id}-header`}
+        role='button'
+        tabIndex={disabled ? -1 : 0}
+        aria-expanded={isOpen}
+        aria-controls={`${id}-panel`}
+        aria-disabled={disabled || undefined}
+        onClick={() => !disabled && setOpen(!isOpen)}
+        onKeyDown={onKeyDown}
+        className={`flex items-center justify-between cursor-pointer ${headerClassName}`}
+      >
+        <span className={titleClassName}>{title}</span>
+        <i
+          className={`fal fa-chevron-down transition-transform duration-200 ${
+            isOpen ? 'rotate-180' : ''
+          } ${iconClassName}`}
+          aria-hidden='true'
+        />
+      </div>
+
+      <AnimatePresence initial={false}>
+        {isOpen && (
+          <motion.div
+            key='panel'
+            id={`${id}-panel`}
+            role='region'
+            aria-labelledby={`${id}-header`}
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: reduced ? 0 : durationMs / 1000 }}
+            style={{ overflow: 'hidden' }}
+            className={panelClassName}
+          >
+            <div>{children}</div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
 }
 
-.collapsed {
-  transform: scale(0);
-  opacity: 0;
-  pointer-events: none;
+
+
+
+import { useState } from 'react';
+import { Toggle } from './Toggle';
+
+export default function Demo() {
+  const [a, setA] = useState(false);
+
+  return (
+    <div className='space-y-4 p-6'>
+      <Toggle
+        title='Details'
+        defaultOpen
+        className='border rounded-xl'
+        headerClassName='px-4 py-2'
+        titleClassName='font-medium'
+        iconClassName='ml-2'
+        panelClassName='px-4 py-3 border-t'
+      >
+        <p>This is some expandable content.</p>
+      </Toggle>
+
+      <Toggle
+        title='Controlled Example'
+        open={a}
+        onOpenChange={setA}
+        className='border rounded-xl'
+        headerClassName='px-4 py-2'
+        titleClassName='font-medium'
+        iconClassName='ml-2'
+        panelClassName='px-4 py-3 border-t'
+      >
+        <p>Controlled toggle panel.</p>
+      </Toggle>
+    </div>
+  );
 }
 
-.expanded {
-  transform: scale(1);
-  opacity: 1;
-  pointer-events: auto;
-}
+
+
+
